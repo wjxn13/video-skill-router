@@ -16,5 +16,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Run segment routing tests
         run: python tests/test_routing.py
+      - name: Run plugin register test
+        run: node tests/test_plugin_register.mjs
