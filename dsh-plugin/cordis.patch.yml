@@ -1,0 +1,9 @@
+# 本 bundle 向 profile 贡献一行配置。
+#
+# `dsh plugin add video-skill-router`（或 github:xxx#path:/dsh-plugin）会把这行
+# 追加到 profile 的 `dsh.profile.bundles`，在 @deepseek-ai/dsh-base 之后应用。
+#
+# 注意：patch 行是整体替换 config、不做深合并；本插件不携带 config，无需在此声明。
+- insert:
+    - id: video-skill-router
+      name: video-skill-router

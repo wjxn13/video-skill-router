@@ -1,0 +1,127 @@
+{
+  "version": "0.1.0",
+  "routing_model": "segment-level",
+  "description": "段级视频制作路由：把「做一个视频」拆成内容片段，每段路由到引擎 + 编排契约 + 依赖顺序。这是单一事实源，被 master-route.py（决策脚本）和 SKILL.md（路由主控）共同引用。",
+  "rules": [
+    {
+      "id": "R01",
+      "trigger": {
+        "contentType": "数学/公式/坐标系/几何/算法可视化",
+        "keywords": ["公式", "数学", "坐标系", "函数", "几何", "推导", "曲线", "图论", "LaTeX", "证明", "最短路径", "算法", "路径", "网络流", "排序", "数据结构"]
+      },
+      "segment": "manim",
+      "params": { "pipeline": "B", "output": "yuv420p" },
+      "contracts": ["math-scene-renders-to-mp4", "colorspace-yuv420p"]
+    },
+    {
+      "id": "R02",
+      "trigger": {
+        "contentType": "金句/文字排版/标题/海报式动画",
+        "keywords": ["金句", "排版", "标题", "海报", "文字动画", "大字", "引言", "slogan"]
+      },
+      "segment": "hyperframes",
+      "contracts": ["kinetic-typography", "no-ai-watermark"]
+    },
+    {
+      "id": "R03",
+      "trigger": {
+        "contentType": "交互逻辑/选择分支/UI 动效/React 组件",
+        "keywords": ["交互", "分支", "点击", "跳转", "UI", "组件", "状态", "表格", "弹簧动画"]
+      },
+      "segment": "remotion",
+      "contracts": ["no-color-string-interpolation"]
+    },
+    {
+      "id": "R04",
+      "trigger": {
+        "contentType": "数据图表/统计/仪表盘",
+        "keywords": ["图表", "柱状图", "折线图", "饼图", "数据", "统计", "仪表盘", "KPI", "可视化"]
+      },
+      "segment": "remotion",
+      "alternatives": ["hyperframes"],
+      "decision": "数据图表默认 Remotion（React 图表组件）；需 HTML/GSAP 动效或网站转视频时用 HyperFrames + Chart.js",
+      "contracts": ["data-chart-accurate"]
+    },
+    {
+      "id": "R05",
+      "trigger": {
+        "contentType": "代码展示/高亮/运行演示",
+        "keywords": ["代码", "高亮", "源码", "运行演示", "命令行", "diff", "注释说明"]
+      },
+      "segment": "hyperframes",
+      "alternatives": ["remotion"],
+      "contracts": ["code-highlight-fidelity"]
+    },
+    {
+      "id": "R06",
+      "trigger": {
+        "contentType": "普通旁白画面/简单卡片/过渡",
+        "keywords": ["旁白画面", "卡片", "过渡", "封面", "片头", "片尾", "结束语", "解说配合"]
+      },
+      "segment": "hyperframes",
+      "contracts": ["no-ai-watermark"]
+    },
+    {
+      "id": "R10",
+      "trigger": {
+        "contentType": "旁白/配音",
+        "hasVoiceover": true,
+        "keywords": ["解说", "旁白", "配音", "女声", "男声", "口播", "讲解"]
+      },
+      "segment": "edge-tts",
+      "dependency": "run-before-others",
+      "contracts": ["segment-length-equals-measured-narration"]
+    },
+    {
+      "id": "R11",
+      "trigger": {
+        "contentType": "自定义/克隆音色",
+        "hasCustomVoice": true,
+        "keywords": ["自定义音色", "克隆声音", "特定音色", "我的声音", "换声线", "音色定制"]
+      },
+      "segment": "ddsp-voice",
+      "dependency": "after-tts",
+      "contracts": ["custom-voice-content-preserved"]
+    },
+    {
+      "id": "R20",
+      "trigger": {
+        "contentType": "字幕",
+        "hasSubtitle": true,
+        "keywords": ["字幕", "srt", "ass", "烧录", "软字幕", "硬字幕"]
+      },
+      "segment": "ffmpeg",
+      "params": { "mode": "soft+hard" },
+      "contracts": ["soft-hard-subtitle-dual-delivery", "subtitle-playres-1080p"]
+    },
+    {
+      "id": "R30",
+      "trigger": {
+        "contentType": "多段总装",
+        "multiSegment": true
+      },
+      "segment": "ffmpeg-xfade",
+      "params": { "transition": "dissolve", "crossfade": "0.5-1s" },
+      "contracts": ["crossfade-chain-preserves-audio-sync", "colorspace-yuv420p"]
+    }
+  ],
+  "contracts": {
+    "segment-length-equals-measured-narration": "每段视频时长 = 该段旁白实测时长；旁白长就延展视频，绝不裁旁白",
+    "crossfade-chain-preserves-audio-sync": "xfade 总装后音画偏移 < 1 帧；offset 用实测段长重算，不信赖旁白估算",
+    "colorspace-yuv420p": "进 xfade 前所有输入统一 format=yuv420p（Remotion 的 yuvj420p 要转）",
+    "no-ai-watermark": "素材不得带「AI 生成」类水印，每段渲染后抽帧核查",
+    "kinetic-typography": "金句段须为排版动效，非静态字幕卡；GSAP 属性只支持 opacity/x/y/scale/rotation/width/height/visibility",
+    "custom-voice-content-preserved": "DDSP 音色转换仅改音色，底音文本/节奏不变，需 A/B 抽听校验",
+    "no-color-string-interpolation": "Remotion 不要插值颜色字符串（会报 TypeError），用分层 div + opacity 数值插值渐显目标色",
+    "data-chart-accurate": "图表数值/坐标须与脚本数据一致，抽帧核对",
+    "code-highlight-fidelity": "代码高亮须清晰可读，CJK 字体正确渲染",
+    "soft-hard-subtitle-dual-delivery": "总装同时产出软字幕版（mov_text 轨）和硬烧版（字焊画面）双交付",
+    "subtitle-playres-1080p": "字幕须用显式 PlayResX:1920/PlayResY:1080 的 ASS，避免纯 SRT 被 libass 放大 ~3.75 倍"
+  },
+  "assembly": {
+    "default_pipeline": "B",
+    "note": "管线 B：各段渲染黑底 MP4 → 统一规格归一化 → ffmpeg xfade 交叉淡化总装。段长由旁白实测时长锚定。",
+    "voice_pipeline": "edge-tts 出底音定段长 → (可选) ddsp-voice 换音色 → 各段按实测时长渲染 → ffmpeg xfade + acrossfade 总装",
+    "subtitle_pipeline": "SRT → 显式 1080p ASS → subtitles 滤镜烧录硬字幕；另 mux mov_text 软字幕轨"
+  }
+}

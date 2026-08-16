@@ -1,0 +1,40 @@
+{
+  "name": "video-skill-router",
+  "version": "0.1.0",
+  "description": "段级视频制作路由：把「做一个视频」拆成内容片段，自动路由到 Manim/Remotion/HyperFrames/ffmpeg/Edge TTS/DDSP 音色转换，并给出编排契约与依赖顺序",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "skills"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "video",
+    "skill-router",
+    "manim",
+    "remotion",
+    "hyperframes",
+    "ffmpeg",
+    "edge-tts",
+    "ddsp"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  }
+}
