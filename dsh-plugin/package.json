@@ -33,7 +33,7 @@
     "edge-tts",
     "ddsp"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   }
